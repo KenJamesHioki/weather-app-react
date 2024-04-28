@@ -1,11 +1,12 @@
 import { Suggestion } from "./Suggestion";
 
-export const Suggestions = () => {
-  return(
+export const Suggestions = ({ suggestions, onClick }) => {
+  return (
     <div>
       <p>候補が複数見つかりました：</p>
-      <Suggestion>都市名1</Suggestion>
-      <Suggestion>都市名2</Suggestion>
+      {suggestions.map((suggestion, index) => (
+        <Suggestion key={index} onClick={()=>onClick({lat:suggestion.lat, lon:suggestion.lon})}>{suggestion.name}</Suggestion>
+      ))}
     </div>
   );
 };

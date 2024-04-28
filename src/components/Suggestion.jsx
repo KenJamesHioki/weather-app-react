@@ -1,7 +1,7 @@
-export const Suggestion = ({children}) => {
+export const Suggestion = ({onClick, children}) => {
   return(
     <div>
-      <p>{children}</p>
+      <p onClick={onClick}>{children}</p>
     </div>
   );
 };

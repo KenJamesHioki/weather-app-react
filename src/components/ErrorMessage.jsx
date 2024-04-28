@@ -1,7 +1,7 @@
-export const ErrorMessage = ({children}) => {
+export const ErrorMessage = ({errorMessage}) => {
   return(
     <div>
-      <p>{children}</p>
+      <p>{errorMessage}</p>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ErrorMessage } from './components/ErrorMessage';
 import { Result } from './components/Result';
 import { Suggestions } from './components/Suggestions';
+import { Loader } from './components/Loader';
 const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
 const WeatherApp = () => {
@@ -12,7 +13,7 @@ const WeatherApp = () => {
   const [weatherInfos, setWeatherInfos] = useState({});
 
   const trigger = async (location) => {
-    // this.loader.display();
+    setState('isLoading');
 
     try {
       const locationDetails = await fetchLocationDetails(location);
@@ -41,8 +42,6 @@ const WeatherApp = () => {
       // resetHtml();
       // errorHandler.trigger(e);
 
-    } finally {
-      // this.loader.hide();
     }
   }
 
@@ -76,7 +75,7 @@ const WeatherApp = () => {
   }
 
   const renderWeather = async (coordinates) => {
-    // this.loader.display();
+    setState('isLoading');
 
     try {
       const weatherDetails = await fetchWeatherDetails(coordinates);
@@ -86,8 +85,6 @@ const WeatherApp = () => {
       // this.#resetHtml();
       // this.errorHandler.trigger(e);
 
-    } finally {
-      // this.loader.hide();
     }
   }
 
@@ -130,13 +127,7 @@ const WeatherApp = () => {
   return (
     <div className='app__wrapper'>
       <div id="container">
-        <div className="loader">
-          <div className="loader__icon">
-            <div className="bounce1"></div>
-            <div className="bounce2"></div>
-            <div className="bounce3"></div>
-          </div>
-        </div>
+        {state === 'isLoading' && <Loader/>}
         <main id="main">
           <section className="weather">
             <div className="weather__inner">

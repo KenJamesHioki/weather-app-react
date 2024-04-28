@@ -1,25 +1,22 @@
-import logo from './logo.svg';
 import './App.css';
+import { ErrorMessage } from './components/ErrorMessage';
+import { Result } from './components/Result';
+import { Suggestions } from './components/Suggestions';
 
-function App() {
+function WeatherApp() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>天気を調べよう</h1>
+      <p>天気を調べたい都市名を入力してください</p>
+      <form>
+        <input/>
+        <button>検索</button>
+      </form>
+      <Suggestions/>
+      <Result>都市名3</Result>
+      <ErrorMessage>エラーが発生しました</ErrorMessage>
     </div>
   );
 }
 
-export default App;
+export default WeatherApp;

@@ -3,42 +3,125 @@ import './App.css';
 import { ErrorMessage } from './components/ErrorMessage';
 import { Result } from './components/Result';
 import { Suggestions } from './components/Suggestions';
+const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
-function WeatherApp() {
-  const [input, setInput] = useState("");
+const WeatherApp = () => {
+  const [input, setInput] = useState('');
+  const [state, setState] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [weatherInfos, setWeatherInfos] = useState({});
 
-  //TODO:Geocoding APIからもらったデータをこの形に形成する
-  const suggestions = [{
-    name: "都市名1",
-    lat: 33.44,
-    lon: -92.12,
-  }, {
-    name: "都市名2",
-    lat: 33.66,
-    lon: -92.67,
-  }];
-  
+  const trigger = async (location) => {
+    // this.loader.display();
+
+    try {
+      const locationDetails = await fetchLocationDetails(location);
+      const uniqueLocationInfos = removeDuplicateLocations(locationDetails.map(location => extractLocationInfo(location)));
+
+      if (!uniqueLocationInfos.length) {
+        setState('isError');
+        // throw new NoCityError('都市が見つかりませんでした。');
+      }
+
+      if (uniqueLocationInfos.length === 1) {
+        setState('isSuccess');
+        const coordinates = {
+          lat: uniqueLocationInfos[0].lat,
+          lon: uniqueLocationInfos[0].lon,
+        }
+
+        renderWeather(coordinates);
+
+      } else {
+        setState('hasSuggestions');
+        setSuggestions(uniqueLocationInfos);
+      }
+
+    } catch (e) {
+      // resetHtml();
+      // errorHandler.trigger(e);
+
+    } finally {
+      // this.loader.hide();
+    }
+  }
+
+  const fetchLocationDetails = async (location) => {
+    const response = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=10&appid=${APIKEY}`);
+    if (!response.ok) {
+      setState("isError");
+      // throwNewError(response.status);
+    }
+
+    return await response.json();
+  }
+
+  const removeDuplicateLocations = (allLocations) => {
+    const uniqueLocations = Array.from(new Map(allLocations.map(location => [location.name, location])));
+
+    return uniqueLocations.map(location => location[1]);
+  }
+
+  const extractLocationInfo = (location) => {
+    const locationInfo = {
+      name: location.name,
+      lat: location.lat,
+      lon: location.lon,
+    }
+    if (location.local_names && location.local_names.ja) {
+      locationInfo.name = location.local_names.ja;
+    }
+
+    return locationInfo;
+  }
+
+  const renderWeather = async (coordinates) => {
+    // this.loader.display();
+
+    try {
+      const weatherDetails = await fetchWeatherDetails(coordinates);
+      renderWeatherInfos(weatherDetails);
+
+    } catch (e) {
+      // this.#resetHtml();
+      // this.errorHandler.trigger(e);
+
+    } finally {
+      // this.loader.hide();
+    }
+  }
+
+  const fetchWeatherDetails = async (coordinates) => {
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${APIKEY}&units=metric&lang=ja`);
+    if (!response.ok) {
+      // this.#throwNewError(response.status)
+    }
+
+    return await response.json();
+  }
+
+  const renderWeatherInfos = (weatherDetails) => {
+    setWeatherInfos({
+      location: weatherDetails.name,
+      temperature: weatherDetails.main.temp,
+      weather: weatherDetails.weather[0].description,
+      weatherIcon: weatherDetails.weather[0].icon,
+      windSpeed: weatherDetails.wind.speed,
+    });
+    setState('isSuccess');
+  }
+
   const onClickSuggestion = (suggestionInfo) => {
     const selectedSuggestion = suggestions.filter(suggestion => suggestionInfo.lat === suggestion.lat && suggestionInfo.lon === suggestion.lon)[0];
-    console.log(selectedSuggestion);
+    renderWeather({
+      lat: selectedSuggestion.lat,
+      lon: selectedSuggestion.lon,
+    });
   }
 
   const onFormSubmit = () => {
     console.log(`form submit: ${input}`);
-    //ここでinputのデータを埋め込んだAPIをコールして、緯度、経度の情報を取得する。
-    //都市名がヒットしない場合：NoCityのエラーを投げる (isError)
-    //都市が1つの場合：天気情報をレンダーする (hasSuggestions)
-    //都市が複数の場合：候補をレンダーする (isSuccess)
-    //コール中にエラーが発生した場合：エラーを適宜投げる (isError)
-  }
-
-  //TODO:OpenWeather APIからもらったデータをこの形に形成する
-  const weatherInfos = {
-    location: "都市名4",
-    temperature: 27.9,
-    weather: "晴れ",
-    weatherIcon: "01d",
-    windSpeed: 7.72,
+    trigger(input);
   }
 
   //TODO:エラーメッセージをそれぞれこの形に形成する
@@ -56,9 +139,9 @@ function WeatherApp() {
         <input value={input} onChange={(e) => setInput(e.target.value)} />
         <button>検索</button>
       </form>
-      <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />
-      <Result weatherInfos={weatherInfos} />
-      <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>
+      {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
+      {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
+      {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
     </div>
   );
 }

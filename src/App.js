@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import './App.css';
+import { useState } from 'react';
 import { ErrorMessage } from './components/ErrorMessage';
 import { Result } from './components/Result';
 import { Suggestions } from './components/Suggestions';
@@ -7,7 +7,7 @@ const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
 const WeatherApp = () => {
   const [input, setInput] = useState('');
-  const [state, setState] = useState(null);
+  const [state, setState] = useState(null); //isLoading, hasSuggestions, isSuccess, isError
   const [suggestions, setSuggestions] = useState([]);
   const [weatherInfos, setWeatherInfos] = useState({});
 
@@ -128,21 +128,52 @@ const WeatherApp = () => {
   const errorMessage = "エラーが発生しました"
 
   return (
-    <div>
-      <h1>天気を調べよう</h1>
-      <p>天気を調べたい都市名を入力してください</p>
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        setInput("");
-        onFormSubmit();
-      }}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} />
-        <button>検索</button>
-      </form>
-      {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
-      {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
-      {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
+    <div className='app__wrapper'>
+      <div id="container">
+        <div className="loader">
+          <div className="loader__icon">
+            <div className="bounce1"></div>
+            <div className="bounce2"></div>
+            <div className="bounce3"></div>
+          </div>
+        </div>
+        <main id="main">
+          <section className="weather">
+            <div className="weather__inner">
+              <h1 className="weather__title">天気を調べよう</h1>
+              <p className="weather__description">天気を調べたい都市名を入力してください</p>
+              <form className="weather__search-form" onSubmit={(e) => {
+                e.preventDefault();
+                setInput("");
+                onFormSubmit();
+              }}>
+                <input className="weather__textbox" value={input} onChange={(e) => setInput(e.target.value)} />
+                <button type="submit" className="btn weather__search-btn">検索</button>
+              </form>
+              {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
+              {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
+              {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
+
+    // <div>
+    //   <h1>天気を調べよう</h1>
+    //   <p>天気を調べたい都市名を入力してください</p>
+    //   <form onSubmit={(e) => {
+    //     e.preventDefault();
+    //     setInput("");
+    //     onFormSubmit();
+    //   }}>
+    //     <input value={input} onChange={(e) => setInput(e.target.value)} />
+    //     <button>検索</button>
+    //   </form>
+    //   {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
+    //   {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
+    //   {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
+    // </div>
   );
 }
 

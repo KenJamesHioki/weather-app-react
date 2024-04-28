@@ -1,7 +1,5 @@
 export const Suggestion = ({onClick, children}) => {
   return(
-    <div>
-      <p onClick={onClick}>{children}</p>
-    </div>
+      <li className="location-suggestions__li" onClick={onClick}><a href="#">{children}</a></li>
   );
 };

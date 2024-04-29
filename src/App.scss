@@ -176,6 +176,12 @@ $cBlack: black;
     padding: 0;
   }
 
+  &__li {
+    text-decoration: underline;
+    color: rgb(40, 40, 195);
+    cursor: pointer;
+  }
+
   &__li+li {
     margin-left: 8px;
   }

@@ -8,9 +8,10 @@ const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
 const WeatherApp = () => {
   const [input, setInput] = useState('');
-  const [state, setState] = useState(null); //isLoading, hasSuggestions, isSuccess, isError
+  const [state, setState] = useState(null); //state: isLoading, hasSuggestions, isSuccess, isError
   const [suggestions, setSuggestions] = useState([]);
   const [weatherInfos, setWeatherInfos] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
 
   const trigger = async (location) => {
     setState('isLoading');
@@ -20,8 +21,8 @@ const WeatherApp = () => {
       const uniqueLocationInfos = removeDuplicateLocations(locationDetails.map(location => extractLocationInfo(location)));
 
       if (!uniqueLocationInfos.length) {
-        setState('isError');
-        // throw new NoCityError('都市が見つかりませんでした。');
+        setErrorMessage('お探しの都市の天気情報が見つかりませんでした。別の都市名を入力し、再度お試しください。');
+        throw new Error('都市が見つかりませんでした。');
       }
 
       if (uniqueLocationInfos.length === 1) {
@@ -39,9 +40,8 @@ const WeatherApp = () => {
       }
 
     } catch (e) {
-      // resetHtml();
-      // errorHandler.trigger(e);
-
+      console.error(e);
+      setState('isError');
     }
   }
 
@@ -49,7 +49,7 @@ const WeatherApp = () => {
     const response = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=10&appid=${APIKEY}`);
     if (!response.ok) {
       setState("isError");
-      // throwNewError(response.status);
+      handleStatus(response.status);
     }
 
     return await response.json();
@@ -82,16 +82,15 @@ const WeatherApp = () => {
       renderWeatherInfos(weatherDetails);
 
     } catch (e) {
-      // this.#resetHtml();
-      // this.errorHandler.trigger(e);
-
+      console.error(e);
+      setErrorMessage('予期せぬエラーが発生しました。');
     }
   }
 
   const fetchWeatherDetails = async (coordinates) => {
     const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${APIKEY}&units=metric&lang=ja`);
     if (!response.ok) {
-      // this.#throwNewError(response.status)
+      handleStatus(response.status)
     }
 
     return await response.json();
@@ -117,12 +116,30 @@ const WeatherApp = () => {
   }
 
   const onFormSubmit = () => {
-    console.log(`form submit: ${input}`);
     trigger(input);
   }
 
-  //TODO:エラーメッセージをそれぞれこの形に形成する
-  const errorMessage = "エラーが発生しました"
+  const handleStatus = (status) => {
+    switch (status) {
+      case 400:
+      case 401:
+      case 404:
+      case 429:
+        setErrorMessage(`天気情報が取得できませんでした。`);
+        throw new Error(`エラーコード：${status}`);
+
+      case 500:
+      case 502:
+      case 503:
+      case 504:
+        setErrorMessage(`天気情報が取得できませんでした。<br>時間をおいてから再度お試しください。`);
+        throw new Error(`エラーコード：${status}`);
+        
+      default:
+        setErrorMessage('予期せぬエラーが発生しました。')
+        throw new Error(`エラーコード：${status}`);
+    }
+  }
 
   return (
     <div className='app__wrapper'>
@@ -143,28 +160,12 @@ const WeatherApp = () => {
               </form>
               {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
               {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
-              {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
+              {state === 'isError' && <ErrorMessage errorMessage={errorMessage}/>}
             </div>
           </section>
         </main>
       </div>
     </div>
-
-    // <div>
-    //   <h1>天気を調べよう</h1>
-    //   <p>天気を調べたい都市名を入力してください</p>
-    //   <form onSubmit={(e) => {
-    //     e.preventDefault();
-    //     setInput("");
-    //     onFormSubmit();
-    //   }}>
-    //     <input value={input} onChange={(e) => setInput(e.target.value)} />
-    //     <button>検索</button>
-    //   </form>
-    //   {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
-    //   {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
-    //   {state === 'isError' && <ErrorMessage errorMessage={errorMessage}>エラーが発生しました</ErrorMessage>}
-    // </div>
   );
 }
 

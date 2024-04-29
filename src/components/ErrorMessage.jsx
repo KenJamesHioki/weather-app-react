@@ -1,7 +1,7 @@
 export const ErrorMessage = ({errorMessage}) => {
   return(
-    <div>
-      <p>{errorMessage}</p>
+    <div className="weather__error-message">
+      <p className="error-message">{errorMessage}</p>
     </div>
   );
 };

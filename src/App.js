@@ -21,7 +21,7 @@ const WeatherApp = () => {
       const uniqueLocationInfos = removeDuplicateLocations(locationDetails.map(location => extractLocationInfo(location)));
 
       if (!uniqueLocationInfos.length) {
-        setErrorMessage('お探しの都市の天気情報が見つかりませんでした。別の都市名を入力し、再度お試しください。');
+        setErrorMessage(<>お探しの都市の天気情報が見つかりませんでした。<br/>別の都市名を入力し、再度お試しください。</>);
         throw new Error('都市が見つかりませんでした。');
       }
 
@@ -132,7 +132,7 @@ const WeatherApp = () => {
       case 502:
       case 503:
       case 504:
-        setErrorMessage(`天気情報が取得できませんでした。<br>時間をおいてから再度お試しください。`);
+        setErrorMessage(<>天気情報が取得できませんでした。<br/>時間をおいてから再度お試しください。</>);
         throw new Error(`エラーコード：${status}`);
         
       default:

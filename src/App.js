@@ -8,25 +8,27 @@ const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
 const WeatherApp = () => {
   const [input, setInput] = useState('');
-  const [state, setState] = useState(null); //state: isLoading, hasSuggestions, isSuccess, isError
+  const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [weatherInfos, setWeatherInfos] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
 
   const trigger = async (location) => {
-    setState('isLoading');
+    setIsLoading(true);
+    setWeatherInfos({});
+    setErrorMessage('');
+    setSuggestions([]);
 
     try {
       const locationDetails = await fetchLocationDetails(location);
       const uniqueLocationInfos = removeDuplicateLocations(locationDetails.map(location => extractLocationInfo(location)));
 
       if (!uniqueLocationInfos.length) {
-        setErrorMessage(<>お探しの都市の天気情報が見つかりませんでした。<br/>別の都市名を入力し、再度お試しください。</>);
+        setErrorMessage(<>お探しの都市の天気情報が見つかりませんでした。<br />別の都市名を入力し、再度お試しください。</>);
         throw new Error('都市が見つかりませんでした。');
       }
 
       if (uniqueLocationInfos.length === 1) {
-        setState('isSuccess');
         const coordinates = {
           lat: uniqueLocationInfos[0].lat,
           lon: uniqueLocationInfos[0].lon,
@@ -35,20 +37,19 @@ const WeatherApp = () => {
         renderWeather(coordinates);
 
       } else {
-        setState('hasSuggestions');
         setSuggestions(uniqueLocationInfos);
+        setIsLoading(false);
       }
 
     } catch (e) {
       console.error(e);
-      setState('isError');
+      setIsLoading(false);
     }
   }
 
   const fetchLocationDetails = async (location) => {
     const response = await fetch(`http://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=10&appid=${APIKEY}`);
     if (!response.ok) {
-      setState("isError");
       handleStatus(response.status);
     }
 
@@ -75,7 +76,8 @@ const WeatherApp = () => {
   }
 
   const renderWeather = async (coordinates) => {
-    setState('isLoading');
+    setIsLoading(true);
+    setSuggestions([]);
 
     try {
       const weatherDetails = await fetchWeatherDetails(coordinates);
@@ -90,7 +92,7 @@ const WeatherApp = () => {
   const fetchWeatherDetails = async (coordinates) => {
     const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${coordinates.lat}&lon=${coordinates.lon}&appid=${APIKEY}&units=metric&lang=ja`);
     if (!response.ok) {
-      handleStatus(response.status)
+      handleStatus(response.status);
     }
 
     return await response.json();
@@ -104,7 +106,7 @@ const WeatherApp = () => {
       weatherIcon: weatherDetails.weather[0].icon,
       windSpeed: weatherDetails.wind.speed,
     });
-    setState('isSuccess');
+    setIsLoading(false);
   }
 
   const onClickSuggestion = (suggestionInfo) => {
@@ -120,6 +122,7 @@ const WeatherApp = () => {
   }
 
   const handleStatus = (status) => {
+    setIsLoading(false);
     switch (status) {
       case 400:
       case 401:
@@ -132,9 +135,9 @@ const WeatherApp = () => {
       case 502:
       case 503:
       case 504:
-        setErrorMessage(<>天気情報が取得できませんでした。<br/>時間をおいてから再度お試しください。</>);
+        setErrorMessage(<>天気情報が取得できませんでした。<br />時間をおいてから再度お試しください。</>);
         throw new Error(`エラーコード：${status}`);
-        
+
       default:
         setErrorMessage('予期せぬエラーが発生しました。')
         throw new Error(`エラーコード：${status}`);
@@ -144,7 +147,7 @@ const WeatherApp = () => {
   return (
     <div className='app__wrapper'>
       <div id="container">
-        {state === 'isLoading' && <Loader/>}
+        {isLoading && <Loader />}
         <main id="main">
           <section className="weather">
             <div className="weather__inner">
@@ -158,9 +161,9 @@ const WeatherApp = () => {
                 <input className="weather__textbox" value={input} onChange={(e) => setInput(e.target.value)} />
                 <button type="submit" className="btn weather__search-btn">検索</button>
               </form>
-              {state === 'hasSuggestions' && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
-              {state === 'isSuccess' && <Result weatherInfos={weatherInfos} />}
-              {state === 'isError' && <ErrorMessage errorMessage={errorMessage}/>}
+              {suggestions.length !== 0 && <Suggestions suggestions={suggestions} onClick={onClickSuggestion} />}
+              {Object.keys(weatherInfos).length !== 0 && <Result weatherInfos={weatherInfos} />}
+              {errorMessage && <ErrorMessage errorMessage={errorMessage} />}
             </div>
           </section>
         </main>

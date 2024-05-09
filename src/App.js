@@ -4,9 +4,9 @@ import { ErrorMessage } from './components/ErrorMessage';
 import { Result } from './components/Result';
 import { Suggestions } from './components/Suggestions';
 import { Loader } from './components/Loader';
-const APIKEY = '16806dd9a591b25a5beebeb69dd718b8';
 
 const WeatherApp = () => {
+  const APIKEY = process.env.REACT_APP_API_KEY;
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
